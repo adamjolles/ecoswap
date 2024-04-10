@@ -3,26 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>EcoSwap - Home</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-        }
-        .header {
-            background-color: #008000;
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-        .content {
-            margin: 15px;
-        }
-        a {
-            color: #0066cc;
-        }
-    </style>
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
     <div class="header">
