@@ -1,11 +1,9 @@
 <?php
-// Assuming you have already created your database and User table
-
 // Database configuration
 $servername = "localhost";
-$username = "root";  // Your database username
-$password = "";      // Your database password
-$database = "ecoswap";  // Your database name
+$username = "root";
+$password = "";
+$database = "ecoswap";
 
 // Create a connection
 $conn = new mysqli($servername, $username, $password, $database);
@@ -21,7 +19,7 @@ $email = $conn->real_escape_string($_POST['email']);
 $plainPassword = $_POST['password'];
 
 // Hash the password
-$passwordHash = password_hash($plainPassword, PASSWORD_DEFAULT);
+$passwordHash = password_hash($plainPassword, "PASSWORD");
 
 // Prepare the SQL statement to avoid SQL injection
 $stmt = $conn->prepare("INSERT INTO User (Name, Email, Password) VALUES (?, ?, ?)");

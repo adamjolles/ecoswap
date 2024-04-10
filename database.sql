@@ -1,3 +1,7 @@
+-- Create DB
+CREATE DATABASE IF NOT EXISTS ecoswap;
+
+-- Add tables
 CREATE TABLE User (
     UserID INT PRIMARY KEY AUTO_INCREMENT,
     Name VARCHAR(255),
