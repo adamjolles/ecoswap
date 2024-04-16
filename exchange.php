@@ -185,82 +185,32 @@ try {
     </div>
 
     <script>
-        $(document).ready(function () {
-            $(".acceptExchange").click(function () {
-                var exchangeID = $(this).data("exchangeid");
-                var confirmAccept = confirm("Are you sure you want to accept this exchange?");
-                if (confirmAccept) {
-                    $.ajax({
-                        type: "POST",
-                        url: "process_exchange.php",
-                        data: { action: "accept", exchangeID: exchangeID },
-                        dataType: 'json',
-                        success: function (response) {
-                            if (response.success) {
-                                alert(response.success);
-                                window.location.reload();
-                            } else {
-                                alert(response.error);
-                            }
-                        },
-                        error: function (xhr) {
-                            alert("An error occurred: " + xhr.statusText);
-                        }
-                    });
-                }
-            });
+    $(document).ready(function() {
+        $('#exchangeForm').on('submit', function(e) {
+            e.preventDefault();  // Prevent default form submission
+            var formData = $(this).serialize();  // Serialize the form data
 
-            $(".rateUser").click(function () {
-                var ratedUserID = $(this).data("userid");
-                var rating = prompt("Please enter your rating for this user (1-5):");
-                if (rating !== null && rating !== '' && !isNaN(rating) && rating >= 1 && rating <= 5) {
-                    $.ajax({
-                        type: "POST",
-                        url: "process_review.php",
-                        data: { exchangeID: ratedUserID, rating: rating },
-                        dataType: 'json',
-                        success: function (response) {
-                            if (response.success) {
-                                alert(response.success);
-                                window.location.reload();
-                            } else {
-                                alert(response.error);
-                            }
-                        },
-                        error: function (xhr) {
-                            alert("An error occurred: " + xhr.statusText);
-                        }
-                    });
-                } else {
-                    alert("Please enter a valid rating between 1 and 5.");
-                }
-            });
-
-            $(".cancelExchange").click(function () {
-                var exchangeID = $(this).data("exchangeid");
-                var confirmCancel = confirm("Are you sure you want to cancel this exchange?");
-                if (confirmCancel) {
-                    $.ajax({
-                        type: "POST",
-                        url: "process_exchange.php",
-                        data: { action: "cancel", exchangeID: exchangeID },
-                        dataType: 'json',
-                        success: function (response) {
-                            if (response.success) {
-                                alert(response.success);
-                                window.location.reload();
-                            } else {
-                                alert(response.error);
-                            }
-                        },
-                        error: function (xhr) {
-                            alert("An error occurred: " + xhr.statusText);
-                        }
-                    });
+            $.ajax({
+                type: 'POST',
+                url: $(this).attr('action'),
+                data: formData,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        alert('Exchange proposed successfully!');
+                        window.location.reload();  // Reload the page to see the update
+                    } else {
+                        alert('Failed to propose exchange: ' + response.error);
+                    }
+                },
+                error: function() {
+                    alert('Error submitting form.');
                 }
             });
         });
-    </script>
+    });
+</script>
+
 
 </body>
 
