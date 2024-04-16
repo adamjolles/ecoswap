@@ -109,6 +109,35 @@ try {
         </table>
 
         <!-- Proposed Exchanges Table -->
+<h2>Propose an Exchange</h2>
+<form id="exchangeForm" action="process_exchange.php" method="POST">
+    <label for="yourItem">Your Item:</label>
+    <select id="yourItem" name="exchangeItemID" required>
+        <option value="">Select Your Item</option>
+        <?php
+        $itemsStmt = $pdo->prepare("SELECT ItemID, Title FROM Item WHERE UserID = ?");
+        $itemsStmt->execute([$user_id]);
+        while ($item = $itemsStmt->fetch(PDO::FETCH_ASSOC)) {
+            echo '<option value="' . $item['ItemID'] . '">' . htmlspecialchars($item['Title']) . '</option>';
+        }
+        ?>
+    </select>
+
+    <label for="otherItem">Item to Exchange With:</label>
+    <select id="otherItem" name="exchangeWithItemID" required>
+        <option value="">Select Item to Exchange With</option>
+        <?php
+        $otherItemsStmt = $pdo->prepare("SELECT ItemID, Title FROM Item WHERE UserID != ?");
+        $otherItemsStmt->execute([$user_id]);
+        while ($item = $otherItemsStmt->fetch(PDO::FETCH_ASSOC)) {
+            echo '<option value="' . $item['ItemID'] . '">' . htmlspecialchars($item['Title']) . '</option>';
+        }
+        ?>
+    </select>
+
+    <button type="submit">Propose Exchange</button>
+</form>
+
         <h2>Proposed Exchanges</h2>
         <table>
             <tr>

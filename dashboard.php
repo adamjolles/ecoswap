@@ -112,7 +112,7 @@ try {
                 var form = $(this);
                 $.ajax({
                     type: "POST",
-                    url: "process_exchange.php", // Update to your PHP script handling exchange proposals
+                    url: "process_exchange.php", 
                     data: form.serialize(),
                     dataType: 'json',
                     success: function(response) {
