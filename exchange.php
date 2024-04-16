@@ -6,77 +6,65 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    $action = $_POST['action'];
+if (isset($_GET['logout'])) {
+    // Clear all session variables
+    session_unset();
 
-    // Handle accepting an exchange
-    if ($action === 'accept' && isset($_POST['exchangeID'])) {
-        // Code to accept the exchange goes here
-        // You can implement this based on your database structure
-        // Example: update the exchange status to 'Accepted'
-        $exchangeID = $_POST['exchangeID'];
-        // Update the exchange status in your database
-        // Redirect or return a success message
-        exit;
-    }
+    // Destroy the session
+    session_destroy();
 
-    // Handle cancelling a proposed exchange
-    if ($action === 'cancel' && isset($_POST['exchangeID'])) {
-        // Code to cancel the exchange goes here
-        // You can implement this based on your database structure
-        // Example: delete the exchange from the database
-        $exchangeID = $_POST['exchangeID'];
-        // Delete the exchange from your database
-        // Redirect or return a success message
-        exit;
-    }
-
-    // Handle rating a completed exchange
-    if ($action === 'rate' && isset($_POST['exchangeID'], $_POST['rating'])) {
-        // Code to rate the exchange goes here
-        // You can implement this based on your database structure
-        // Example: update the user's rating in the database
-        $exchangeID = $_POST['exchangeID'];
-        $rating = $_POST['rating'];
-        // Update the user's rating in your database
-        // Redirect or return a success message
-        exit;
-    }
+    // Redirect to the login page
+    header('Location: index.php');
+    exit;
 }
 
-// Fetch incoming exchanges
-try {
-    // Code to fetch incoming exchanges goes here
-    // You can fetch data from your database based on your requirements
-    // Example: select exchanges where the user's item is being requested
-    // $incomingExchanges = ...;
-} catch (PDOException $e) {
-    die("Error fetching incoming exchanges: " . $e->getMessage());
-}
+$user_id = $_SESSION['user_id'];
 
-// Fetch proposed exchanges
-try {
-    // Code to fetch proposed exchanges goes here
-    // You can fetch data from your database based on your requirements
-    // Example: select exchanges where the user's item is being offered
-    // $proposedExchanges = ...;
-} catch (PDOException $e) {
-    die("Error fetching proposed exchanges: " . $e->getMessage());
-}
+// Connect to the database
+$host = 'localhost';
+$dbname = 'ecoswap';
+$db_user = 'root';
+$db_pass = '';
 
-// Fetch completed exchanges
 try {
-    // Code to fetch completed exchanges goes here
-    // You can fetch data from your database based on your requirements
-    // Example: select exchanges where the status is 'Completed'
-    // $completedExchanges = ...;
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $db_user, $db_pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Fetch incoming exchanges
+    $incomingStmt = $pdo->prepare("SELECT E.ExchangeID, E.Item1ID, E.Item2ID, E.Status, I1.Title AS YourItemTitle, I2.Title AS OtherUserItemTitle
+                                    FROM Exchange E
+                                    INNER JOIN Item I1 ON E.Item1ID = I1.ItemID
+                                    INNER JOIN Item I2 ON E.Item2ID = I2.ItemID
+                                    WHERE I2.UserID = ? AND E.Status = 'Pending'");
+    $incomingStmt->execute([$user_id]);
+    $incomingExchanges = $incomingStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch proposed exchanges
+    $proposedStmt = $pdo->prepare("SELECT E.ExchangeID, E.Item1ID, E.Item2ID, E.Status, I1.Title AS YourItemTitle, I2.Title AS OtherUserItemTitle
+                                    FROM Exchange E
+                                    INNER JOIN Item I1 ON E.Item1ID = I1.ItemID
+                                    INNER JOIN Item I2 ON E.Item2ID = I2.ItemID
+                                    WHERE I1.UserID = ? AND E.Status = 'Pending'");
+    $proposedStmt->execute([$user_id]);
+    $proposedExchanges = $proposedStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch completed exchanges
+    $completedStmt = $pdo->prepare("SELECT E.ExchangeID, E.Item1ID, E.Item2ID, E.Status, I1.Title AS YourItemTitle, I2.Title AS OtherUserItemTitle
+                                    FROM Exchange E
+                                    INNER JOIN Item I1 ON E.Item1ID = I1.ItemID
+                                    INNER JOIN Item I2 ON E.Item2ID = I2.ItemID
+                                    WHERE (I1.UserID = ? OR I2.UserID = ?) AND E.Status = 'Accepted'");
+    $completedStmt->execute([$user_id, $user_id]);
+    $completedExchanges = $completedStmt->fetchAll(PDO::FETCH_ASSOC);
+
 } catch (PDOException $e) {
-    die("Error fetching completed exchanges: " . $e->getMessage());
+    die("Error fetching exchanges: " . $e->getMessage());
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -84,6 +72,7 @@ try {
     <link rel="stylesheet" href="pages.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
+
 <body>
 
     <div class="navbar">
@@ -114,7 +103,6 @@ try {
                     <td><?= $exchange['Status'] ?></td>
                     <td><?= $exchange['YourItemTitle'] ?></td>
                     <td><?= $exchange['OtherUserItemTitle'] ?></td>
-                    <!-- Action button to accept the exchange -->
                     <td><button class="acceptExchange" data-exchangeid="<?= $exchange['ExchangeID'] ?>">Accept</button></td>
                 </tr>
             <?php endforeach; ?>
@@ -123,29 +111,62 @@ try {
         <!-- Proposed Exchanges Table -->
         <h2>Proposed Exchanges</h2>
         <table>
-            <!-- Display proposed exchanges similarly -->
+            <tr>
+                <th>Exchange ID</th>
+                <th>Status</th>
+                <th>Your Item</th>
+                <th>Other User's Item</th>
+                <th>Action</th>
+            </tr>
+            <?php foreach ($proposedExchanges as $exchange): ?>
+                <tr>
+                    <!-- Display exchange details -->
+                    <td><?= $exchange['ExchangeID'] ?></td>
+                    <td><?= $exchange['Status'] ?></td>
+                    <td><?= $exchange['YourItemTitle'] ?></td>
+                    <td><?= $exchange['OtherUserItemTitle'] ?></td>
+                    <td><button class="cancelExchange" data-exchangeid="<?= $exchange['ExchangeID'] ?>">Cancel</button></td>
+                </tr>
+            <?php endforeach; ?>
         </table>
 
         <!-- Completed Exchanges Table -->
         <h2>Completed Exchanges</h2>
         <table>
-            <!-- Display completed exchanges similarly -->
+            <tr>
+                <th>Exchange ID</th>
+                <th>Status</th>
+                <th>Your Item</th>
+                <th>Other User's Item</th>
+                <th>Action</th>
+                <th>Rating</th>
+            </tr>
+            <?php foreach ($completedExchanges as $exchange): ?>
+                <tr>
+                    <!-- Display exchange details -->
+                    <td><?= $exchange['ExchangeID'] ?></td>
+                    <td><?= $exchange['Status'] ?></td>
+                    <td><?= $exchange['YourItemTitle'] ?></td>
+                    <td><?= $exchange['OtherUserItemTitle'] ?></td>
+                    <td><button class="rateUser" data-userid="<?= $exchange['OtherUserID'] ?>">Rate</button></td>
+                    <td><?= calculateAverageRating($exchange['OtherUserID']) ?></td>
+                </tr>
+            <?php endforeach; ?>
         </table>
     </div>
 
     <script>
-        $(document).ready(function() {
-            $(".acceptExchange").click(function() {
+        $(document).ready(function () {
+            $(".acceptExchange").click(function () {
                 var exchangeID = $(this).data("exchangeid");
                 var confirmAccept = confirm("Are you sure you want to accept this exchange?");
                 if (confirmAccept) {
-                    // Perform AJAX request to accept the exchange
                     $.ajax({
                         type: "POST",
-                        url: "exchange.php",
+                        url: "process_exchange.php",
                         data: { action: "accept", exchangeID: exchangeID },
                         dataType: 'json',
-                        success: function(response) {
+                        success: function (response) {
                             if (response.success) {
                                 alert(response.success);
                                 window.location.reload();
@@ -153,16 +174,65 @@ try {
                                 alert(response.error);
                             }
                         },
-                        error: function(xhr) {
+                        error: function (xhr) {
                             alert("An error occurred: " + xhr.statusText);
                         }
                     });
                 }
             });
 
-            // Similar AJAX functions for cancelling exchanges and submitting ratings
+            $(".rateUser").click(function () {
+                var ratedUserID = $(this).data("userid");
+                var rating = prompt("Please enter your rating for this user (1-5):");
+                if (rating !== null && rating !== '' && !isNaN(rating) && rating >= 1 && rating <= 5) {
+                    $.ajax({
+                        type: "POST",
+                        url: "process_review.php",
+                        data: { exchangeID: ratedUserID, rating: rating },
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.success) {
+                                alert(response.success);
+                                window.location.reload();
+                            } else {
+                                alert(response.error);
+                            }
+                        },
+                        error: function (xhr) {
+                            alert("An error occurred: " + xhr.statusText);
+                        }
+                    });
+                } else {
+                    alert("Please enter a valid rating between 1 and 5.");
+                }
+            });
+
+            $(".cancelExchange").click(function () {
+                var exchangeID = $(this).data("exchangeid");
+                var confirmCancel = confirm("Are you sure you want to cancel this exchange?");
+                if (confirmCancel) {
+                    $.ajax({
+                        type: "POST",
+                        url: "process_exchange.php",
+                        data: { action: "cancel", exchangeID: exchangeID },
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.success) {
+                                alert(response.success);
+                                window.location.reload();
+                            } else {
+                                alert(response.error);
+                            }
+                        },
+                        error: function (xhr) {
+                            alert("An error occurred: " + xhr.statusText);
+                        }
+                    });
+                }
+            });
         });
     </script>
 
 </body>
+
 </html>
