@@ -15,7 +15,7 @@ CREATE TABLE Item (
     Title VARCHAR(255),
     Description TEXT,
     Category VARCHAR(255),
-    `Condition` VARCHAR(255),
+    `ItemCondition` VARCHAR(255),
     UserID INT,
     FOREIGN KEY (UserID) REFERENCES User(UserID)
 );
