@@ -38,6 +38,24 @@ try {
 } catch (PDOException $e) {
     die("Error connecting to the database: " . $e->getMessage());
 }
+
+// Check if the form is submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['deleteItemId'])) {
+    $deleteItemId = $_POST['deleteItemId'];
+
+    // Delete the item from the database
+    try {
+        $stmt = $pdo->prepare("DELETE FROM Item WHERE ItemID = ?");
+        $stmt->execute([$deleteItemId]);
+
+        // Redirect to items.php with success message
+        header('Location: items.php?item_deleted=true');
+        exit;
+
+    } catch (PDOException $e) {
+        die("Error deleting item: " . $e->getMessage());
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -93,7 +111,13 @@ try {
                         <td><?= htmlspecialchars($item['Title']) ?></td>
                         <td><?= htmlspecialchars($item['ItemDescription']) ?></td>
                         <td><?= htmlspecialchars($item['ItemCondition']) ?></td>
-                        <td><button class="editItem" data-itemid="<?= $item['ItemID'] ?>">Edit</button></td>
+                        <td>
+                            <button class="editItem" data-itemid="<?= $item['ItemID'] ?>">Edit</button>
+                            <form class="deleteForm" method="post" style="display:inline-block;">
+                                <input type="hidden" name="deleteItemId" value="<?= $item['ItemID'] ?>">
+                                <button type="button" class="deleteItem">Delete</button>
+                            </form>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </table>
@@ -159,6 +183,12 @@ try {
                 });
             });
 
+            $(".deleteItem").click(function() {
+                if (confirm('Are you sure you want to delete this item?')) {
+                    $(this).closest('.deleteForm').submit();
+                }
+            });
+
             $("#editItemForm").submit(function(event) {
                 event.preventDefault();
                 $.ajax({
@@ -170,6 +200,28 @@ try {
                         if (response.success) {
                             alert(response.success);
                             $("#editModal").hide();
+                            window.location.reload();
+                        } else {
+                            alert(response.error);
+                        }
+                    },
+                    error: function(xhr) {
+                        alert("An error occurred: " + xhr.statusText);
+                    }
+                });
+            });
+
+            $("#addItemForm").submit(function(event) {
+                event.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: "process_addItem.php",
+                    data: $(this).serialize(),
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.success);
+                            $("#myModal").hide();
                             window.location.reload();
                         } else {
                             alert(response.error);
