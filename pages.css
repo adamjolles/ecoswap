@@ -1,0 +1,99 @@
+/* Reset some basic elements */
+body, h1, h2, h3, p, form, div {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+    color: #0c0c0c;
+    background-color: #cadcbf;
+}
+
+/* Navigation Bar Styles */
+.navbar {
+    background-color: #597226;
+    overflow: hidden;
+    display: flex;
+    justify-content: left;
+}
+
+.navbar a {
+    float: none;
+    color: #cadcbf;
+    padding: 14px 20px;
+    text-decoration: none;
+    font-size: 18px;
+    display: block;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.navbar a:hover {
+    background-color: #849434;
+    color: #ffffff;
+}
+
+/* Main Content Styles */
+.main-content {
+    padding: 20px;
+    background-color: #f5f5f5;
+    min-height: calc(100vh - 56px); /* Adjust based on navbar height */
+}
+
+/* Footer Styles */
+footer {
+    background-color: #93bc3f;
+    color: #0c0c0c;
+    text-align: center;
+    padding: 10px;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+/* Utility Classes */
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+/* Typography & Links */
+h1, h2, h3 {
+    color: #0c0c0c;
+}
+
+a {
+    color: #597226;
+}
+
+a:hover {
+    color: #93bc3f;
+}
+
+/* Button Styles */
+button {
+    background-color: #849434;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+button:hover {
+    background-color: #93bc3f;
+}
+
+/* Form Styles */
+input[type="email"], input[type="password"], input[type="text"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}

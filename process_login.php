@@ -1,45 +1,44 @@
 <?php
 session_start();
 
-// Database configuration
-$servername = "localhost";
-$username = "root";  // Your database username
-$password = "";      // Your database password
-$database = "ecoswap";  // Your database name
+// Connect to the database
+$host = 'localhost'; // Or the appropriate host IP
+$dbname = 'ecoswap';
+$user = 'root'; // Default XAMPP username
+$pass = ''; // Default XAMPP password is blank
 
-// Create a connection
-$conn = new mysqli($servername, $username, $password, $database);
-
-// Check connection
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $user, $pass);
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+} catch (PDOException $e) {
+    die("Could not connect to the database $dbname :" . $e->getMessage());
 }
 
-// Retrieve user input
-$email = $conn->real_escape_string($_POST['email']);
-$plainPassword = $_POST['password'];
+// Check if Email and Password are set
+if (isset($_POST['email']) && isset($_POST['password'])) {
+    $email = $_POST['email'];
+    $password = $_POST['password'];
 
-// Prepare the SQL statement to avoid SQL injection
-$stmt = $conn->prepare("SELECT UserID, Password FROM User WHERE Email = ?");
-$stmt->bind_param("s", $email);
-$stmt->execute();
-$result = $stmt->get_result();
+    // Prepare and execute the query
+    $stmt = $pdo->prepare("SELECT * FROM User WHERE Email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
 
-if ($result->num_rows == 1) {
-    $row = $result->fetch_assoc();
-    if (password_verify($plainPassword, $row['Password'])) {
-        // Password is correct, start user session
-        $_SESSION['UserID'] = $row['UserID'];
-        header("Location: dashboard.php"); // Redirect to dashboard or home page
+    // Verify password and start the session
+    if ($user && password_verify($password, $user['Password'])) {
+        $_SESSION['user_id'] = $user['UserID'];
+        $_SESSION['user_email'] = $user['Email'];
+        // Redirect to a welcome or home page after successful login
+        header("Location: dashboard.php");
+        exit;
     } else {
-        // Redirect back to login with an error message
-        header("Location: index.php?error=invalidpassword");
+        // Redirect back to the login page with an error message
+        header("Location: index.php?error=invalid_credentials");
+        exit;
     }
 } else {
-    // Redirect back to login with an error message
-    header("Location: index.php?error=invalidemail");
+    // Redirect back to the login page with an error message
+    header("Location: index.php?error=empty_fields");
+    exit;
 }
-
-$stmt->close();
-$conn->close();
 ?>
