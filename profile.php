@@ -52,6 +52,7 @@ try {
     <div class="navbar">
         <a href="dashboard.php">Dashboard</a>
         <a href="items.php">Your Items</a>
+        <a href="exchange.php">Exchanges</a>
         <a href="profile.php">Your Profile</a>
         <a href="?logout=true">Logout</a>
     </div>
